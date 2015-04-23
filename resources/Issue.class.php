@@ -1,0 +1,358 @@
+<?php
+
+/* Issue.class.php
+ * Charles Sedgwick
+ * Web Admin, Summer Student 
+ * Email: csedgwic@ab.bluecross.ca
+ * 
+ * The Issue class contains all the methods and data related to submitting an 
+ * issue to an ADR environment tracker. 
+ */
+
+class Issue{
+
+private $errorMessage;
+private $env;
+private $index;
+private $dateTime;
+private $invest;
+private $desc;
+private $appsAffected;
+private $strAffect;
+private $appsSource;
+private $strSource;
+private $stat;
+private $defectID;
+private $envs;
+private $fields;
+private $cnt;
+private $formSub;
+private $dataFiles;
+private $issNum;
+
+/* Issue()
+ * Defualt constructor for the Issue class. An associative array storing the 
+ * file names for the csv is isntantiated. The formSub property stores the 
+ * value the submit button is set to when clicked. 
+ */
+ 
+public function Issue(){
+	$this->setup();
+}
+
+public static function fromFile($file){
+	$instance = new self();
+	$s = implode('', file($file));
+	$instance =  unserialize($s);
+	return $instance;
+	}
+
+public static function withData($fields,$env,$issNum){
+	$instance = new self();
+	$instance->setFields($fields);
+	$instance->setEnv($env);
+	$instance->setIssNum($issNum);
+	return $instance;	
+}
+
+private function setup(){
+	$this->errorMessage = "";
+	$this->formSub = "formSub";
+	date_default_timezone_set("America/Edmonton");
+
+	$this->dataFiles = array("SYS"=>"dataSYS.csv",
+						"PER"=>"dataPER.csv",
+						"QAT"=>"dataQAT.csv",
+						"UAT"=>"dataUAT.csv",
+						"PRD"=>"dataPRD.csv",
+						"XAP"=>"dataXAP.csv",
+						"DEV"=>"dataDEV.csv",
+						"IRH"=>"dataIRH.csv",
+						"BIR"=>"dataBIR.csv",
+						"TRN"=>"dataTRN.csv",
+						"BPV"=>"dataBPV.csv",
+						"PRL"=>"dataPRL.csv",
+						"test"=>"dataTest.csv");
+
+	$this->index = array("index"=>0,
+						"dateTime"=>1,
+						"invest"=>2,
+						"desc"=>3,
+						"appsSource"=>4,
+						"appsAffect"=>5,
+						"defectID"=>6,
+						"stat"=>7);
+}
+
+/* procFields()
+ * procFields() takes the values that are set when the submit button is pressed
+ * and stores them in an array called fields. After ensuring all fields have 
+ * been filled out, it then sanitizes them for commas and newlines. It also converts
+ * all fields to upper case, except the description, for easier reading. 
+ */
+public function procForm(){
+
+	if(isset($_POST['env'])){
+		$this->env = $_POST['env'];
+	}
+	$this->index = 1;
+	if(isset($_POST['dateTime'])){
+		$this->dateTime = date( "dmy" )."@".date("h").":".date("i");
+	}
+	$this->invest = $_POST['invest'];
+	$this->desc = $_POST['desc'];
+	$this->stat = $_POST['stat'];	
+	$this->defectID = $_POST['defectID'];
+
+	$this->appsSource = array($_POST['source_BEN1'],
+								$_POST['source_BEN2'],
+								$_POST['source_BRR'],
+								$_POST['source_CNV2'],
+								$_POST['source_ENR1'],
+								$_POST['source_ESR1'],
+								$_POST['source_OEA1'],
+								$_POST['source_SAL1'],
+								$_POST['source_IGR1'],
+								$_POST['source_FIN1'],
+								$_POST['source_PTY'],
+								$_POST['source_PYR'],
+								$_POST['source_SEC'],
+								$_POST['source_PII'],
+								$_POST['source_IAMAPP'],
+								$_POST['source_ALL']);
+
+	if ($this->appsSource[15] === "Environment Wide"){
+		$this->strSource = "Environment Wide";
+	}else{
+		$this->strSource = implode(' ', $this->appsSource);
+	}
+
+	$this->appsAffect = array($_POST['BEN1'],
+								$_POST['BEN2'],
+								$_POST['BRR'],
+								$_POST['CNV2'],
+								$_POST['ENR1'],
+								$_POST['ESR1'],
+								$_POST['OEA1'],
+								$_POST['SAL1'],
+								$_POST['IGR1'],
+								$_POST['SAL1'],
+								$_POST['FIN1'],
+								$_POST['PTY'],
+								$_POST['PYR'],
+								$_POST['SEC'],
+								$_POST['PII'],
+								$_POST['IAMAPP'],
+								$_POST['ALL']);
+
+		if($this->appsAffect[15] === "Environment Wide"){
+		  $this->strAffect = "Environment Wide";
+		}else{	
+			$this->strAffect = implode(' ', $this->appsAffect);
+		}
+
+
+	$this->fields = array($this->index,
+					$this->dateTime,
+					$this->invest,
+					$this->desc,
+					$this->strSource,
+					$this->strAffect,
+					$this->defectID,
+					$this->stat);
+	$this->cnt = count($this->fields);	
+
+	
+	for ($i = 0; $i < $this->cnt; $i++){
+		if( (empty($this->fields[$i]) || $this->fields[$i] == 'SELECT' || 
+			$this->fields[$i] == '                ') && $i != 6){
+			$this->errorMessage = "procForm(): [ERROR] Please fill out all fields";
+			break;
+		}
+
+		$this->fields[$i] = str_replace(",", "", $this->fields[$i]);
+		$this->fields[$i] = str_replace("\n", " ", $this->fields[$i]);
+		
+		//Do not convert the description to upper case
+		if($i != 3){
+			$this->fields[$i] = strtoupper($this->fields[$i]);
+		}
+	}
+}
+
+/*writeFields()
+ * 
+ *writeData() takes the submitted data stored in the objects properties and 
+ * goes about writing it to the relevant csv file. It does this by first 
+ * checking that there are no errors. It also checks that an environment 
+ * was selected (which should never fail, remove). The issue number for the
+ * new issue is generated by counting the number of issues already in the 
+ * csv file and adding one. The php function fputcsv writes an array to a 
+ * file pointer in csv format and it is used here to write the issues to 
+ * the relevent csv file. 
+ * 
+ */  
+
+public function writeFields(){
+
+	if($this->errorMessage !== "")
+   {
+      echo $this->errorMessage;
+   }
+   elseif( !empty($this->env) )  
+   {
+   	// generate an issue number using the number of lines in the data file
+     	$lineCount = 0;
+     	$handle = fopen(__DIR__ . "/" . $this->dataFiles[$this->env], "r");
+
+		if(!$fp){
+			echo "writeFields(): [ERROR] Unable to open " . $this->dataFiles[$this->env] . "<br>";
+			return;
+		}else {
+	      echo ("Success!");
+		}
+
+     	while(fgets($fp)){
+        	$lineCount++;
+     	}
+
+      $this->fields[0] = $lineCount;
+      fclose($fp);
+
+      // write issue fields to environment data file in csv format
+      $fp = fopen(__DIR__ . "/" . $this->dataFiles[$this->env],"a");
+		if(!$fp){
+			echo "writeFields(): [ERROR] Unable to open " . $this->dataFiles[$this->env] . "<br>";
+			return;
+		}
+
+      fputcsv($fp,$this->fields);
+      fclose($fp);
+
+      //add redirect to avoid refresh issues
+   }
+
+}
+
+public function setFields($arr){
+		$this->fields[$this->index['index']] = $arr[$this->index['index']];
+		$this->fields[$this->index['dateTime']] = $arr[$this->index['dateTime']];
+		$this->fields[$this->index['invest']] = $arr[$this->index['invest']];
+		$this->fields[$this->index['desc']] =$arr[$this->index['desc']];
+		$this->fields[$this->index['appsAffect']] = $arr[$this->index['appsAffect']];
+		$this->fields[$this->index['appsSource']] = $arr[$this->index['appsSource']];
+		$this->fields[$this->index['stat']] = $arr[$this->index['stat']];	
+		$this->fields[$this->index['defectID']] = $arr[$this->index['defectID']];
+
+}
+
+public function saveIssue(){
+
+	$copy = serialize($this);
+   $fs = fopen(__DIR__ . "/issue.dat","w");
+	fwrite($fs,$copy);
+	fclose($fs);
+}
+
+/* get and set functions are included for completeness and are not used
+ * extensiveley if at all. They have not been tested. 
+ */
+
+public function setIssNum($newIssNum){
+	$this->issNum = $newIssNum;
+	$this->fields[0] = $newIssNum;
+}
+
+public function setDateTime($newDateTime){
+	$this->fields[1] = $newDateTime;
+}
+
+public function setInvest($newInvest){
+	$this->fields[2] = $newInvest;
+}
+
+public function setDesc($newDesc){
+	$this->fields[3] = $newDesc;
+}
+
+public function setAppSource($newAppSource){
+	$this->fields[4] = $newAppSource;
+}
+
+public function setAppAffect($newAppAffect){
+	$this->fields[5] = $newAppAffect;
+}
+
+public function setDefectId($newDefectID){
+	$this->fields[6] = $newDefectID;
+}
+
+public function setStatus($newStatus){
+	$this->fields[7] = $newStatus;
+}
+
+public function setErrMessage($newErrMessage){
+	$this->errorMessage = $newErrMessage;
+}
+
+public function setEnv($newEnv){
+	$this->env = $newEnv;
+}
+
+public function getDataFile($env){
+	return $this->dataFiles[$env];
+}
+
+public function getIndex($key){
+	return $this->index[$key];
+}
+
+public function getDateTime(){
+	return $this->fields[1];
+}
+
+public function getInvest(){
+	return $this->fields[2];
+}
+
+public function getDesc(){
+	return $this->fields[3];
+}
+
+public function getAppsAffect(){
+	return $this->fields[5];
+}
+
+public function getAppsSource(){
+	return $this->fields[4];
+}
+
+public function getStatus(){
+	return $this->fields[7];
+}
+
+public function getDefectID(){
+	return $this->fields[6];
+}
+
+public function getErrMessage(){
+	return $this->errorMessage;
+}
+
+public function getEnviron(){
+	return $this->env;
+}
+
+public function getFormSubmit(){
+	return $this->formSub;
+}
+
+public function getIssNum(){
+	return $this->issNum;
+}
+
+public function getFields(){
+	return $this->fields;
+}
+
+}

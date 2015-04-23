@@ -1,0 +1,9 @@
+Index,"Date and Time","Lead Investigator",Symptoms,"Source Apps","Affected Apps","ALM Defect ID",Status
+1,160614@11:38,CHARLES,fsdf," BEN2              ","    ENR1           ",,OPEN
+2,050814@02:27,ADAM,"  submit.php Charles Sedgwick Web Admin Summer Student  Email: csedgwic@ab.bluecross.ca  Submit.php allows the user to add an issue to an ASR environment issue tracker.  The trackers use csv files to store data. The heavy lifting is done in php  specifically with the code found in Issue.class.php. Submit.php generates  the page the user sees using the methods within an Issue object.  -->","BEN1               ","   CNV2            ",3434,OPEN
+3,060814@05:39,DFGSDFGDFGS,sfgsgfdg,"    ENR1           ","     ESR1           ",,OPEN
+4,070814@02:02,TONY,"s of Vim 7.3 substitutions applied to a range defined by marks or a visual selection (which uses a special type of marks '< and '>) are not bounded by the column position of t"," BEN2              ","       SAL1  SAL1       ",,OPEN
+5,070814@02:24,MCCOY,"ll because you'd need yet another class (or method) that would basically just consist of a switch/case decision tree in the end just doing what I already did in two methods. factories are more useful in situations where you can't easily d","  BRR             ","  BRR              ",,OPEN
+6,070814@02:29,KAFKA," header('Location: url.php')","  BRR             ","    ENR1            ",,OPEN
+7,070814@02:30,KAFKA," header('Location: url.php')","  BRR             ","    ENR1            ",,OPEN
+8,070814@04:04,WERWER,"We first created an HTML form ""order.html"" that had two input fields specified ""item"" and ""quantity"". We added two attributes to the form tag to point to ""process.php"" and set the method to ""post"". We had ""process.php"" get the","    ENR1           ","       SAL1  SAL1       ",,OPEN

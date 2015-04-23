@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<!-- 
+submit.php
+Charles Sedgwick
+Web Admin, Summer Student 
+Email: csedgwic@ab.bluecross.ca
+
+Submit.php allows the user to add an issue to an ASR environment issue tracker. 
+The trackers use csv files to store data. The heavy lifting is done in php, 
+specifically with the code found in Issue.class.php. Submit.php generates 
+the page the user sees using the methods within an Issue object. 
+-->
+
+
+<html>
+
+<head>
+	<link rel="stylesheet" type="text/css" href="/dev/resources/CSS/styleGen.css">
+	<title>Submit an Issue</title>
+</head>
+
+<body>
+
+	<div id="container"> 
+		<div id="header">
+			<p class="centered"><img src="resources/images/Submit-New-Issue.png" alt="Submit"></p>
+		</div>
+
+
+		<div id="menuCol">
+			<p> menu </p>
+
+			<a href="/tables/tableSYS.php">SYS/AT Table</a><br>
+			<a href="/tables/tablePER.php">PER Table</a><br>
+			<a href="/tables/tableQAT.php">QAT Table</a><br>
+			<a href="/tables/tableUAT.php">UAT/BPV Table</a><br>
+			<a href="/tables/tablePRD.php">PRD Table</a><br>
+			<a href="/tables/tableXAP.php">XAP Table</a><br>
+			<a href="/tables/tableDEV.php">DEV Table</a><br>
+			<a href="/tables/tableTRN.php">TRN Table</a><br>
+			<a href="/tables/tableBIR.php">BIR Table</a><br>
+			<a href="/tables/tableIRH.php">IRH Table</a><br>
+			<a href="/tables/tableBPV.php">BPV Table</a><br>
+			<a href="/tables/tablePRL.php">PRL Table</a><br>
+			
+			<form method="link" action="editExisting.php">
+				<input type="submit" value="Edit Existing Issue">
+			</form>
+		</div>
+
+		<div id="content">
+         <p class="centered">Please ensure that your issue has not already been documented!</p>
+		
+			<div id="form">
+				<form id="newIssue" action="submit.php" method="post">
+					<table>
+						<tr>
+							<th>Environment:</th>
+							<th>Lead Investigator:</th>
+							<th>Description:</th>
+							<th>Source Apps:</th>
+							<th>Affected Apps:</th>
+							<th>ALM Defect ID</th>
+							<th>Status</th>
+						</tr>
+						<tr>
+							<td><select name="env">
+								<option value="SELECT">SELECT</option>
+								<option value="PER">PER</option>
+								<option value="SYS">SYS/AT</option>
+								<option value="QAT">QAT</option>
+								<option value="PRD">PRD</option>
+								<option value="DEV">DEV</option>
+								<option value="IRH">IRH</option>
+								<option value="BIR">BIR</option>
+								<option value="XAP">XAP</option>
+								<option value="TRN">TRN</option>
+								<option value="BPV">BPV</option>
+								<option value="PRL">PRL</option>
+								<option value="UAT">UAT/BPV</option>
+								</select>
+							</td>
+							<td><input type="text" name="invest" maxLength="25" value=""></td>
+							<td><textarea name="desc" rows="4" cols="50" value=""></textarea></td>
+							<td id="checkbox"><input type="checkbox" name="source_BEN1" value="BEN1">BEN1<br>
+								<input type="checkbox" name="source_BEN2" value="BEN2">BEN2<br>
+								<input type="checkbox" name="source_BRR" value="BRR">BRR<br>
+								<input type="checkbox" name="source_CNV2" value="CNV2">CNV2<br>
+								<input type="checkbox" name="source_ENR1" value="ENR1">ENR1<br>
+								<input type="checkbox" name="source_ESR1" value="ESR1">ESR1<br>
+								<input type="checkbox" name="source_OEA1" value="OEA1">OEA1<br>
+								<input type="checkbox" name="source_OEA2" value="OEA2">OEA2<br>
+								<input type="checkbox" name="source_SAL1" value="SAL1">SAL1<br>
+								<input type="checkbox" name="source_FIN1" value="FIN1">FIN1<br>
+								<input type="checkbox" name="source_IGR1" value="IGR1">IGR1<br>
+								<input type="checkbox" name="source_PTY" value="PTY">PTY<br>
+								<input type="checkbox" name="source_PYR" value="PYR">PYR<br>
+								<input type="checkbox" name="source_SEC" value="SEC">SEC<br>
+								<input type="checkbox" name="source_PII" value="PII">PII<br>
+								<input type="checkbox" name="source_IAMAPP" value="IAMAPP">IAMAPP<br>
+								<input type="checkbox" name="source_ALL" value="Environment Wide">Evironment Wide
+							</td>
+							<td id="checkbox"><input type="checkbox" name="BEN1" value="BEN1">BEN1<br>
+								<input type="checkbox" name="BEN2" value="BEN2">BEN2<br>
+								<input type="checkbox" name="BRR" value="BRR">BRR<br>
+								<input type="checkbox" name="CNV2" value="CNV2">CNV2<br>
+								<input type="checkbox" name="ENR1" value="ENR1">ENR1<br>
+								<input type="checkbox" name="ESR1" value="ESR1">ESR1<br>
+								<input type="checkbox" name="OEA1" value="OEA1">OEA1<br>
+								<input type="checkbox" name="OEA2" value="OEA2">OEA2<br>
+								<input type="checkbox" name="SAL1" value="SAL1">SAL1<br>
+								<input type="checkbox" name="FIN1" value="FIN1">FIN1<br>
+								<input type="checkbox" name="IGR1" value="IGR1">IGR1<br>
+								<input type="checkbox" name="PTY" value="PTY">PTY<br>
+								<input type="checkbox" name="PYR" value="PYR">PYR<br>
+								<input type="checkbox" name="SEC" value="SEC">SEC<br>
+								<input type="checkbox" name="PII" value="PII">PII<br>
+								<input type="checkbox" name="IAMAPP" value="IAMAPP">IAMAPP<br>
+								<input type="checkbox" name="ALL" value="Environment Wide">Evironment Wide
+							</td>
+
+							<td><input type="text" name="defectID" maxLEngth="10" ></td>
+							<td><select name="stat">
+									<option value="SELECT">SELECT</option>
+									<option value="OPEN">OPEN</option>
+									<option value="CLOSED">CLOSED</option>
+								</select>
+							</td>
+						</tr>
+					</table>
+
+
+					<input type="submit" name="formSub" value="Submit"><br>
+
+				</form>
+
+			</div>
+
+
+			<div id=status>
+
+			</div>
+		</div>
+		
+		<div id="rightCol">
+		</div>
+
+		<div id="footer">
+			<p>Alberta Bluecross 2014</p>
+		</div>
+
+	</div>	
+	
+</body>
+</html>

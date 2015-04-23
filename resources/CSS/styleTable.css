@@ -1,0 +1,22 @@
+body
+{
+background-image:url('/dev/resources/images/cross.png');
+background-repeat:repeat;
+}
+
+table, th, td
+{
+border: 1px solid grey;
+padding:5px;
+border-collapse:collapse;
+}
+table
+{
+width:100%;
+}
+th
+{
+background-color: royalblue;
+color:#ffffff;
+}
+
